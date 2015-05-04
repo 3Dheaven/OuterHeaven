@@ -14,8 +14,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-out vec3 V;
-out vec3 L;
 out vec3 N;
 
 void main()
@@ -42,7 +40,5 @@ void main()
 	vVertex = vec4( view * vec4(position, 1.0f) ).xyz;
 	vLightpos = vec4( view * vec4(0.0, 4.0, -7.0, 1.0) ).xyz;
 	
-	V = -vVertex;
-	L = vLightpos - vVertex;
 	N = vec4(transpose(inverse(view)) * vec4(normal, 1.0f)).xyz;
 }

@@ -23,21 +23,21 @@ using namespace std;
 class Material
 {
 public:
-	Material(aiColor4D ka, aiColor4D kd, aiColor4D ks, GLuint texDiffuse, GLuint texNormal, GLuint texSpecular);
+	Material(aiColor4D ambient, aiColor4D diffuse, aiColor4D specular, GLuint textureDiffuse, GLuint textureNormal, GLuint textureSpecular);
 	~Material();
 
 	GLuint getTexDiffuse() const;
 	GLuint getTexNormal() const;
 	GLuint getTexSpecular() const;
 
-	aiColor4D getKa() const;
-	aiColor4D getKd() const;
-	aiColor4D getKs() const;
+	aiColor4D getAmbient() const;
+	aiColor4D getDiffuse() const;
+	aiColor4D getSpecular() const;
 
 	void bind(const Shader &shader) const;
 	void unbind() const;
 
 private:
-	aiColor4D m_ka, m_kd, m_ks;
+	aiColor4D m_ambient, m_diffuse, m_specular;
 	GLuint m_texDiffuse, m_texNormal, m_texSpecular;
 };

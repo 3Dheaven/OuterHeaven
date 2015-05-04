@@ -54,8 +54,8 @@ int main()
 
 		// Point light positions
 		glm::vec3 pointLightPositions[] = {
-			glm::vec3(0.0f, 4.0f, -7.0f),
-			glm::vec3(-40.0f, 4.0f, -7.0f)
+			glm::vec3(0.0f, 7.0f, -3.0f),
+			glm::vec3(-40.0f, 7.0f, -3.0f)
 		};
 
 		if(glfwJoystickPresent(0))
@@ -91,7 +91,7 @@ int main()
 
 			// Point light 1
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);		
+			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].ambient"), 1.0f, 1.0f, 1.0f); 		
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].diffuse"), 1.0f, 1.0f, 1.0f); 
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
 			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[0].constant"), 1.0f);
@@ -100,7 +100,7 @@ int main()
 
 			// Point light 2
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f);		
+			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].ambient"), 1.0f, 1.0f, 1.0f);		
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].diffuse"), 1.0f, 1.0f, 1.0f); 
 			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
 			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[1].constant"), 1.0f);
@@ -109,13 +109,13 @@ int main()
 
 			ground.Draw(shaders);
 
+			/*
 			shaderLight.Use();
 
 			// Transformation matrices
 			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-			// Draw the loaded model
 			glm::mat4 modelLightMatrix = glm::translate(glm::mat4(1.0f), pointLightPositions[0]) * glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
 			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelLightMatrix));
 
@@ -125,6 +125,7 @@ int main()
 			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelLightMatrix));
 
 			light.Draw(shaderLight);
+			*/
 
 			engine.swapBuffer();
 			

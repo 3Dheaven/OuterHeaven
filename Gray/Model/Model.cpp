@@ -46,8 +46,6 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 modelMat
         this->meshes.push_back(this->processMesh(mesh, scene, node->mTransformation));	
     }
 
-	node->mTransformation;
-
     // After we've processed all of the meshes (if any) we then recursively process each of the children nodes
     for(GLuint i = 0; i < node->mNumChildren; i++)
     {
@@ -149,10 +147,9 @@ GLint TextureFromFile(const char* path, string directory)
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
     
-    //glGenerateMipmap(GL_TEXTURE_2D);	
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     // Parameters
-	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
