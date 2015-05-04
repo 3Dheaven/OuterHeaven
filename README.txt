@@ -7,3 +7,5 @@ J'ai créé un dossier RESULTS avec deux images. C'est ce que tu dois obtenir quan
 De plus, tu peux brancher ta manette de xbox 360 pour controler la caméra et te déplacer. Il est possible qu'il faille faire un étalonnage de la manette pour que ça fonctionne.
 
 Voila pour le moment fiston ! =D
+
+ET OUBLIE PAS aussi fiston d'activer la Vsync dans les paramètres Nvidia pour le programme. Ca permettra d'appliquer un framerate de 60 fps max.
