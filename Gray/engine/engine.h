@@ -18,10 +18,7 @@ class Engine
 
 		GLint init();
 		void swapBuffer();
-
 		GLFWwindow* getWindow() const;
-		GLuint getScreenWidth() const;
-		GLuint getScreenHeight() const;
 
 	protected:
 		GLFWwindow* m_window;

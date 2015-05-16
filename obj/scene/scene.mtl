@@ -1,0 +1,81 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# Fichier créé: 04.05.2015 20:13:32
+
+newmtl sol
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5880 0.5880 0.5880
+	Kd 0.5880 0.5880 0.5880
+	Ks 1.0000 1.0000 1.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Kd map\texture.png
+	map_bump map\normal.png
+
+newmtl wire_009032002
+	Ns 32
+	d 1
+	Tr 0
+	Tf 1 1 1
+	illum 2
+	Ka 0.0353 0.1255 0.0078
+	Kd 0.0353 0.1255 0.0078
+	Ks 0.3500 0.3500 0.3500
+
+newmtl _scene03___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0314 0.0314 0.0314
+	Kd 1.0000 1.0000 1.0000
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Kd map\grasstexture.png
+	map_bump map\grassnormal.png
+
+newmtl 07___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0314 0.0314 0.0314
+	Kd 1.0000 1.0000 1.0000
+	Ks 1.0000 1.0000 1.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Kd map\wallDiffuse.png
+	map_bump map\wallNorm.png
+
+newmtl _scene02___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0314 0.0314 0.0314
+	Kd 1.0000 1.0000 1.0000
+	Ks 1.0000 1.0000 1.0000 
+	Ke 0.0000 0.0000 0.0000
+	map_Kd map\stonewall2.jpg
+	map_bump map\stonewall2Norm.jpg
+
+newmtl 08___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0314 0.0314 0.0314
+	Kd 1.0000 1.0000 1.0000
+	Ks 1.0000 1.0000 1.0000 
+	Ke 0.0000 0.0000 0.0000
+	map_Kd map\stonewall2.jpg

@@ -11,7 +11,6 @@ using namespace std;
 #include <GL/glew.h> // Contains all the necessery OpenGL includes
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <assimp/scene.h>
 
 #include "../shader/shader.h"
@@ -39,8 +38,6 @@ public:
 
     // Render the mesh
     void Draw(const Shader &shader, const Material& mat) const;
-
-	void Draw(const Shader &shader, const Material& mat, const int nbInstance) const;
 
 private:
     /*  Render data  */

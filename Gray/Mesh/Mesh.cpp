@@ -19,11 +19,9 @@ void Mesh::Draw(const Shader &shader, const Material& mat) const
 {
 	//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &m_modelMatrix[0][0]);
 
-	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
-
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
 	mat.bind(shader);
+
+	glUniform1f(glGetUniformLocation(shader.Program, "shininess"), 16.0f);
 
     // Draw mesh
     glBindVertexArray(this->VAO);
@@ -32,21 +30,6 @@ void Mesh::Draw(const Shader &shader, const Material& mat) const
 
 	mat.unbind();
 }
-
-void Mesh::Draw(const Shader &shader, const Material& mat, const int nbInstance) const
-{
-	//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, &m_modelMatrix[0][0]);
-
-	mat.bind(shader);
-
-    // Draw mesh
-    glBindVertexArray(this->VAO);
-	glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, nbInstance);
-    glBindVertexArray(0);
-
-	mat.unbind();
-}
-	
 
 // Initializes all the buffer objects/arrays
 void Mesh::setupMesh()

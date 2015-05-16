@@ -20,7 +20,7 @@ enum Camera_Movement
 // Default camera values
 const GLfloat YAW        =	-135.0f;
 const GLfloat PITCH      =  0.0f;
-const GLfloat SPEED      =  12.0f;
+const GLfloat SPEED      =  3.0f;
 const GLfloat SENSITIVTY =  0.50f;
 const GLfloat ZOOM       =  45.0f;
 
@@ -46,12 +46,9 @@ public:
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(GLfloat yoffset);
 
-	void ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y, GLfloat deltaTime);
+	void ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y);
 
 	GLfloat getZoom() const;
-	glm::vec3 getPosition() const;
-	glm::vec3 getFront() const;
-	glm::vec3 getUp() const;
 
 private:
 	// Camera Attributes
