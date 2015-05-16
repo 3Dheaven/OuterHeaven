@@ -42,6 +42,11 @@ int Engine::init()
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_NICEST);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	return 0;
 }
@@ -49,6 +54,16 @@ int Engine::init()
 GLFWwindow* Engine::getWindow() const
 {
 	return m_window;
+}
+
+GLuint Engine::getScreenWidth() const
+{
+	return m_screenWidth;
+}
+
+GLuint Engine::getScreenHeight() const
+{
+	return m_screenHeight;
 }
 
 void Engine::swapBuffer()

@@ -12,9 +12,8 @@
 
 #include "camera/camera.h"
 #include "engine/engine.h"
-#include "model/Model.h"
+#include "model/nature/Nature.h"
 #include "shader/Shader.h"
-#include "light/PointLight/PointLight.h"
 
 Camera camera;
 bool keys[1024];
@@ -44,19 +43,7 @@ int main()
 		glfwSetCursorPosCallback(window, mouse_callback);
 		glfwSetScrollCallback(window, scroll_callback);
 
-		Model ground("../obj/scene/scene.obj");
-		Shader shaders("shaders/vertex.glsl", "shaders/fragment.glsl");
-
-		Model light("../obj/sphereLight.obj");
-		Shader shaderLight("shaders/vertexLight.glsl", "shaders/fragmentLight.glsl");
-
-		PointLight pLight;
-
-		// Point light positions
-		glm::vec3 pointLightPositions[] = {
-			glm::vec3(0.0f, 7.0f, -3.0f),
-			glm::vec3(-40.0f, 7.0f, -3.0f)
-		};
+		Model sponza("../obj/crytek-sponza/sponza.obj", camera, engine);
 
 		if(glfwJoystickPresent(0))
 		{
@@ -77,58 +64,15 @@ int main()
 			// Check and call events
 			glfwPollEvents();
 			Do_Movement();
-
-			glClearColor(0.03f, 0.03f, 0.03f, 1.0f);
+			
+			glClearDepth(1.0);
+			glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			shaders.Use();
-
-			// Transformation matrices
-			glm::mat4 projection = glm::perspective(camera.getZoom(), (float)screenWidth/(float)screenHeight, 0.1f, 500.0f);
-			glm::mat4 view = camera.GetViewMatrix();
-			glUniformMatrix4fv(glGetUniformLocation(shaders.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(shaders.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-
-			// Point light 1
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].ambient"), 1.0f, 1.0f, 1.0f); 		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].diffuse"), 1.0f, 1.0f, 1.0f); 
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[0].constant"), 1.0f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[0].linear"), 0.009f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[0].quadratic"), 0.0032f);
-
-			// Point light 2
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].ambient"), 1.0f, 1.0f, 1.0f);		
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].diffuse"), 1.0f, 1.0f, 1.0f); 
-			glUniform3f(glGetUniformLocation(shaders.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[1].constant"), 1.0f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[1].linear"), 0.009f);
-			glUniform1f(glGetUniformLocation(shaders.Program, "pointLights[1].quadratic"), 0.0032f);
-
-			ground.Draw(shaders);
-
-			/*
-			shaderLight.Use();
-
-			// Transformation matrices
-			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-
-			glm::mat4 modelLightMatrix = glm::translate(glm::mat4(1.0f), pointLightPositions[0]) * glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
-			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelLightMatrix));
-
-			light.Draw(shaderLight);
-
-			modelLightMatrix = glm::translate(glm::mat4(1.0f), pointLightPositions[1]) * glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
-			glUniformMatrix4fv(glGetUniformLocation(shaderLight.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelLightMatrix));
-
-			light.Draw(shaderLight);
-			*/
-
-			engine.swapBuffer();
+			sponza.Draw();
 			
+			engine.swapBuffer();
+
 			/*
 			if((glfwGetTime() - ellapsed_time) / 1000.0 < 16.67)
 				Sleep(static_cast<DWORD>(16.67 - ((glfwGetTime() - ellapsed_time) / 1000.0)));
@@ -157,7 +101,7 @@ void Do_Movement()
 	{
 		int nb;
 		const float* tab = glfwGetJoystickAxes(0, &nb);
-		camera.ProcessJoystickPad(tab[0], tab[1], tab[3], tab[4]);
+		camera.ProcessJoystickPad(tab[0], tab[1], tab[3], tab[4], (GLfloat) deltaTime);
 	}
 }
 
