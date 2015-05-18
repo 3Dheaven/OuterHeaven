@@ -8,14 +8,22 @@ Framebuffer::Framebuffer(GLboolean depthBufTest, GLuint width, GLuint height):m_
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
 	m_FramebufferName = 0;
 	glGenFramebuffers(1, &m_FramebufferName);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferName);
 
 	textureBuffer();
 	if(m_depthBufTest) depthTest();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint Framebuffer::getRenderedTexture() const
 {
 	return m_renderedTexture;
+}
+
+GLuint Framebuffer::getDepthTexture() const
+{
+	return m_depthTexture;
 }
 
 void Framebuffer::vertexQuad()
@@ -55,9 +63,9 @@ void Framebuffer::drawQuad()
 		0,// stride
 		(void*)0// array buffer offset
 	);
-	glDrawArrays(GL_TRIANGLES, 0, 3*2); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+	glDrawArrays(GL_TRIANGLES, 0, 6); // Starting from vertex 0; 3 vertices total -> 1 triangle
 	
-	// A VERIFIER
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -70,19 +78,22 @@ void Framebuffer::textureBuffer()
  
 	// "Bind" the newly created texture : all future texture functions will modify this texture
 	glBindTexture(GL_TEXTURE_2D, m_renderedTexture);
- 
-	// Give an empty image to OpenGL ( the last "0" )
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	//glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderedTexture, 0);
 }
 
 void Framebuffer::depthTest()
@@ -91,20 +102,50 @@ void Framebuffer::depthTest()
 	glGenRenderbuffers(1, &m_depthrenderbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_depthrenderbuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_width, m_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthrenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glGenTextures(1, &m_depthTexture);
+	glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // automatic mipmap generation included in OpenGL v1.4
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
 }
 
 void Framebuffer::enable()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferName);
 
-	// Set "renderedTexture" as our colour attachement #0
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderedTexture, 0);
-	if(m_depthBufTest) glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthrenderbuffer);
+	if(m_depthBufTest)
+	{
+		// Set the list of draw buffers.
+		GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+		glDrawBuffers(2, DrawBuffers); // "1" is the size of DrawBuffers
+	}
+	else
+	{
+		// Set the list of draw buffers.
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+	}
 
-	// Set the list of draw buffers.
-	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
-
+	//glClearDepth(1.0);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
@@ -116,4 +157,8 @@ void Framebuffer::disable()
 
 Framebuffer::~Framebuffer()
 {
+	glDeleteFramebuffers(1, &m_FramebufferName);
+	glDeleteRenderbuffers(1, &m_depthrenderbuffer);
+	glDeleteTextures(1, &m_renderedTexture);
+	glDeleteTextures(1, &m_depthTexture);
 }

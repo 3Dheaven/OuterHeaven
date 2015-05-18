@@ -1,14 +1,23 @@
 #include "Model.h"
 
-Model::Model(GLchar* path)
+Model::Model(GLchar* path, const Camera& camera, const Engine& engine):m_lightShaderStorageBuffer(), m_camera(camera), m_engine(engine),
+	m_shader("shaders/lighting/vertex.glsl", "shaders/lighting/fragment.glsl")
 {
     this->loadModel(path);
 }
 
-void Model::Draw(const Shader &shaders) const
+void Model::Draw()
 {
+	m_shader.Use();
+
+	glm::mat4 view = m_camera.GetViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(m_shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+
+	//glShaderStorageBlockBinding(m_shader.Program, glGetProgramResourceIndex(m_shader.Program, GL_SHADER_STORAGE_BLOCK, "LightData"), 0);
+
     for(GLuint i = 0; i < this->meshes.size(); i++)
-        this->meshes[i].Draw(shaders, m_material[this->meshes[i].getMaterialIndex()]);
+        this->meshes[i].Draw(m_shader, m_material[this->meshes[i].getMaterialIndex()]);
+
 }
 
 // Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -30,8 +39,91 @@ void Model::loadModel(string path)
 
 	this->processMaterial(scene);
 
+	this->processLight(scene);
+
     // Process ASSIMP's root node recursively
     this->processNode(scene->mRootNode, scene, modelMatrix);
+
+	// Transformation matrices
+	glm::mat4 projection = glm::perspective(m_camera.getZoom(), (GLfloat)m_engine.getScreenWidth()/(GLfloat)m_engine.getScreenHeight(), 0.1f, 500.0f);
+	//projection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+
+	m_matricesSSBO.create(sizeof(glm::mat4)*2, GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	m_matricesSSBO.setBindingPoint(1);
+
+	m_lightShaderStorageBuffer.bind();
+	m_matricesSSBO.bind();
+}
+
+Light createLight(aiVector3D position, aiColor3D ambient, aiColor3D diffuse, aiColor3D specular, GLfloat constant, GLfloat linear, 
+				  GLfloat quadratic, GLfloat angleInnerCone, GLfloat angleOuterCone, aiVector3D direction)
+{
+	Light light;
+
+	light.position = glm::vec4(position.x, position.y, position.z, 1.0f);
+	light.ambient = glm::vec4(ambient.r, ambient.g, ambient.b, 1.0f);
+	light.diffuse = glm::vec4(diffuse.r, diffuse.g, diffuse.b, 1.0f);
+	light.specular = glm::vec4(specular.r, specular.g, specular.b, 1.0f);
+	light.attenuation = glm::vec4(constant, linear, quadratic, 1.0);
+	light.cutOff = glm::vec4(angleInnerCone, angleOuterCone, 1.0f, 1.0f);
+	light.direction = glm::vec4(direction.x, direction.y, direction.z, 1.0f);
+
+	return light;
+}
+
+void Model::processLight(const aiScene* scene)
+{
+	vector<Light> listPointLight;
+	vector<Light> listSpotLight;
+	vector<Light> listDirectionalLight;
+
+	aiLight* light;
+	Light myLight;
+	/*
+	listDirectionalLight.push_back(createLight(aiVector3D(-50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
+		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(-1.0f, -1.0f, 1.0f)));
+	*/
+	/*
+	listPointLight.push_back(createLight(aiVector3D(-50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
+		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(-1.0f, -1.0f, 1.0f)));
+	*/
+	listPointLight.push_back(createLight(aiVector3D(0.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
+		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(-1.0f, -1.0f, 1.0f)));
+	/*
+	listPointLight.push_back(createLight(aiVector3D(50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
+		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(0.0f, -1.0f, 0.0f)));
+	*/
+	for(int i=0; scene->mNumLights; i++)
+	{
+		light = scene->mLights[i];
+
+		myLight = createLight(light->mPosition, light->mColorAmbient, light->mColorDiffuse, light->mColorSpecular, 
+			light->mAttenuationConstant, light->mAttenuationLinear, light->mAttenuationQuadratic,
+			light->mAngleInnerCone, light->mAngleOuterCone, light->mDirection);
+
+		if(light->mType == aiLightSourceType::aiLightSource_POINT)
+			listPointLight.push_back(myLight);
+
+		if(light->mType == aiLightSourceType::aiLightSource_SPOT)
+			listSpotLight.push_back(myLight);
+
+		if(light->mType == aiLightSourceType::aiLightSource_DIRECTIONAL)
+			listDirectionalLight.push_back(myLight);
+	}
+
+	GLuint nbLights = listPointLight.size() + listSpotLight.size() + listDirectionalLight.size();
+
+	m_lightShaderStorageBuffer.create(sizeof(glm::ivec4) + sizeof(Light)*nbLights, GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::ivec4), glm::value_ptr(glm::ivec4(listPointLight.size(), listSpotLight.size(), listDirectionalLight.size(), 1)));
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4), sizeof(Light)*listPointLight.size(), &listPointLight[0]);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4) + sizeof(Light)*listPointLight.size(), sizeof(Light)*listSpotLight.size(), &listSpotLight[0]);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4) + sizeof(Light)*listPointLight.size() + sizeof(Light)*listSpotLight.size(), sizeof(Light)*listDirectionalLight.size(), &listDirectionalLight[0]);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	m_lightShaderStorageBuffer.setBindingPoint(0);
 }
 
 // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -51,7 +143,6 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 modelMat
     {
         this->processNode(node->mChildren[i], scene, node->mTransformation);
     }
-
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMatrix) const
@@ -133,7 +224,7 @@ void Model::processMaterial(const aiScene* scene)
 	}
 }
 
-GLint TextureFromFile(const char* path, string directory)
+GLint Model::TextureFromFile(const char* path, string directory)
 {
      //Generate texture ID and load texture data 
     string filename = string(path);
@@ -143,22 +234,23 @@ GLint TextureFromFile(const char* path, string directory)
     glGenTextures(1, &textureID);
 
     int width,height;
-    unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+    unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+
     // Assign texture to ID
     glBindTexture(GL_TEXTURE_2D, textureID);
     
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     // Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	
-    glBindTexture(GL_TEXTURE_2D, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    
     SOIL_free_image_data(image);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
     return textureID;
 }

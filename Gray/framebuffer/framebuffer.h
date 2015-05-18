@@ -19,14 +19,16 @@ class Framebuffer
 		void depthTest();
 		void enable();
 		void disable();
+
 		GLuint getRenderedTexture() const;
+		GLuint getDepthTexture() const;
 
 		static void vertexQuad();
 		static void drawQuad();
 
 	protected:
 		GLuint m_FramebufferName;
-		GLuint m_renderedTexture;
+		GLuint m_renderedTexture, m_depthTexture;
 		GLuint m_depthrenderbuffer;
 
 		GLuint m_width, m_height;

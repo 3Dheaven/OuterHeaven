@@ -68,10 +68,10 @@ void Camera::ProcessMouseScroll(GLfloat yoffset)
         this->Zoom = 45.0f;
 }
 
-void Camera::ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y)
+void Camera::ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y, GLfloat deltaTime)
 {
-	if(abs(axis2y) > 0.2) this->Yaw += axis2y * MovementSpeed;
-	if(abs(axis2x) > 0.2) this->Pitch -= axis2x * MovementSpeed;
+	if(abs(axis2y) > 0.2) this->Yaw += axis2y * MovementSpeed * deltaTime;
+	if(abs(axis2x) > 0.2) this->Pitch -= axis2x * MovementSpeed * deltaTime;
 
 	if (this->Pitch > 89.0f)
         this->Pitch = 89.0f;
@@ -101,4 +101,19 @@ void Camera::updateCameraVectors()
 GLfloat Camera::getZoom() const
 {
 	return Zoom;
+}
+
+glm::vec3 Camera::getPosition() const
+{
+	return Position;
+}
+
+glm::vec3 Camera::getFront() const
+{
+	return Front;
+}
+
+glm::vec3 Camera::getUp() const
+{
+	return Up;
 }
