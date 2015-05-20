@@ -22,6 +22,8 @@ public:
 	void create(GLint size,GLenum type, GLenum usage);
 	void destroy();
 
+	void mapBuffer(const GLvoid* v, size_t s) const;
+
 	GLuint getBuffer();
 	GLenum getType();
 
@@ -33,5 +35,4 @@ public:
 
 private:
 	GLuint m_Buffer, m_Type, m_Size, m_BindingPoint;
-
 };

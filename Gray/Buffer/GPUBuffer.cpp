@@ -26,6 +26,13 @@ void GPUBuffer::create(GLint size,GLenum type, GLenum usage)
 	m_BindingPoint = -1;
 }
 
+void GPUBuffer::mapBuffer(const GLvoid* v, size_t s) const
+{
+	GLvoid* p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+	memcpy(p, v, s);
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
 GLuint GPUBuffer::getBuffer()
 {
 	return m_Buffer;

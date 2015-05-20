@@ -1,6 +1,6 @@
 #include "Nature.h"
 
-Nature::Nature(const Camera& camera, const Engine& engine):Model("../obj/nature/nature.obj", camera, engine), 
+Nature::Nature(Camera& camera, const Engine& engine):Model("../obj/nature/nature.obj", camera, engine), 
 	m_grassShader("shaders/nature/grass/vertex.glsl", "shaders/nature/grass/fragment.glsl"),
 	m_treeShader("shaders/nature/tree/vertex.glsl", "shaders/nature/tree/fragment.glsl")
 {

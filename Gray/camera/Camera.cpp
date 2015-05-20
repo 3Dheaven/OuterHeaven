@@ -1,6 +1,7 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
+Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), 
+	MouseSensitivity(SENSITIVTY), Zoom(ZOOM), m_update(false)
 {
     this->Position = position;
     this->WorldUp = up;
@@ -9,7 +10,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch) : F
     this->updateCameraVectors();
 }
 // Constructor with scalar values
-Camera::Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
+Camera::Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : 
+	Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM), m_update(false)
 {
     this->Position = glm::vec3(posX, posY, posZ);
     this->WorldUp = glm::vec3(upX, upY, upZ);
@@ -18,8 +20,18 @@ Camera::Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat up
     this->updateCameraVectors();
 }
 
+GLboolean Camera::needUpdate() const
+{
+	return m_update;
+}
+
+void Camera::setUpdate(GLboolean v)
+{
+	m_update = v;
+}
+
 // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
-glm::mat4 Camera::GetViewMatrix() const
+glm::mat4 Camera::GetViewMatrix()
 {
     return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
 }
@@ -36,6 +48,8 @@ void Camera::ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime)
         this->Position -= this->Right * velocity;
     if (direction == RIGHT)
         this->Position += this->Right * velocity;
+
+	m_update = true;
 }
 
 // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -55,6 +69,8 @@ void Camera::ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset)
 
     // Update Front, Right and Up Vectors using the updated Eular angles
     this->updateCameraVectors();
+
+	m_update = true;
 }
 
 // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
@@ -66,6 +82,8 @@ void Camera::ProcessMouseScroll(GLfloat yoffset)
         this->Zoom = 1.0f;
     if (this->Zoom >= 45.0f)
         this->Zoom = 45.0f;
+
+	m_update = true;
 }
 
 void Camera::ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y, GLfloat deltaTime)
@@ -82,6 +100,8 @@ void Camera::ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, 
 
 	if(abs(axis1y) > 0.2) this->Position -= this->Front * axis1y;
 	if(abs(axis1x) > 0.2) this->Position += this->Right * axis1x;
+
+	m_update = true;
 }
 
 // Calculates the front vector from the Camera's (updated) Eular Angles

@@ -11,12 +11,6 @@ struct Light
 	vec3 direction;
 };
 
-layout (std430, binding=0) readonly buffer LightData
-{
-	ivec3 nbTypeLights;
-	Light lights[];
-};
-
 struct Material
 {
 	vec3 ambient;
@@ -30,6 +24,20 @@ struct Material
 	ivec3 texDNS;
 };
 
+layout (std430, binding=0) readonly buffer LightData
+{
+	ivec3 nbTypeLights;
+	Light lights[];
+};
+
+layout (std430, binding=1) readonly buffer matrices
+{
+	mat4 model;
+	mat4 view;
+	mat4 projection;
+	mat4 normalMatrix;
+};
+
 in vec3 fragPos;
 in vec2 TexCoords;
 in vec3 N;
@@ -37,17 +45,9 @@ in vec3 N;
 out vec4 color;
 
 uniform Material material;
-uniform mat4 view;
-
-layout (std430, binding=1) readonly buffer matrices
-{
-	mat4 model;
-	mat4 projection;
-};
 
 // Function prototypes
 vec3 CalcPointLight(Light light, vec3 normal, vec3 V);
-vec3 CalcPointLightBis(Light light, vec3 normal, vec3 V);
 vec3 CalcSpotLight(Light light, vec3 normal, vec3 V);
 vec3 CalcDirLight(Light light, vec3 normal, vec3 V);
 
@@ -60,7 +60,6 @@ float intensity(Light light);
 
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv);
 vec3 perturb_normal(vec3 N, vec3 V, vec2 texcoord);
-
 
 void main()
 {
@@ -79,8 +78,8 @@ void main()
     
 	// Point Lights
 	for(int i = 0; i < nbLights.x; i++)
-        result += CalcPointLightBis(lights[i], normal, V);
-	/*
+        result += CalcPointLight(lights[i], normal, V);
+	
 	// Spot Lights
     for(int i = 0; i < nbLights.y; i++)
 		result += CalcSpotLight(lights[nbLights.x+i], normal, V);
@@ -88,8 +87,9 @@ void main()
 	// Directional Lights
 	for(int i = 0; i < nbLights.z; i++)
 		result += CalcDirLight(lights[nbLights.x+nbLights.y+i], normal, V);
-	*/
+	
 	color = vec4(result, 1.0f);
+	//color = texture2D(material.texture_normal, TexCoords);
 }
 
 
@@ -205,43 +205,6 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 V)
 	s = specularColor(light, normal, V, L);
 
     att = attenuation(light);
-
-	a *= att;
-	d *= att;
-	s *= att;
-
-	return a + d + s;
-}
-
-vec3 CalcPointLightBis(Light light, vec3 normal, vec3 V)
-{
-	vec3 a, d, s;
-	float att;
-
-	vec3 vLightPosition = vec3(view * vec4(light.position, 1.0));
-	vec3 L = normalize(vLightPosition - fragPos);
-
-	if(material.texDNS.x != 0)
-	{
-		vec3 texDiff = texture2D(material.texture_diffuse, TexCoords).xyz;
-		a = texDiff * material.ambient * light.ambient;
-		d = max(dot(L,normal),0) * texDiff * material.diffuse * light.diffuse;
-	}
-	else
-	{	
-		a = material.ambient * light.ambient;
-		d = max(dot(L,normal),0) * material.diffuse * light.diffuse;
-	}
-
-	vec3 R = reflect(-L,normal);
-
-	if(material.texDNS.z != 0)
-		s = pow(max(dot(R,V),0),32) * texture2D(material.texture_specular, TexCoords).xyz * material.specular * light.specular;
-	else
-		s = pow(max(dot(R,V),0),32) * material.specular * light.specular;
-
-	float dist = length(vLightPosition - fragPos);
-    att =  1.0f / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * (dist * dist));
 
 	a *= att;
 	d *= att;

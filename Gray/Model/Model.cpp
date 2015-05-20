@@ -1,6 +1,6 @@
 #include "Model.h"
 
-Model::Model(GLchar* path, const Camera& camera, const Engine& engine):m_lightShaderStorageBuffer(), m_camera(camera), m_engine(engine),
+Model::Model(GLchar* path, Camera& camera, const Engine& engine):m_lightShaderStorageBuffer(), m_camera(camera), m_engine(engine),
 	m_shader("shaders/lighting/vertex.glsl", "shaders/lighting/fragment.glsl")
 {
     this->loadModel(path);
@@ -10,14 +10,10 @@ void Model::Draw()
 {
 	m_shader.Use();
 
-	glm::mat4 view = m_camera.GetViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(m_shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-
-	//glShaderStorageBlockBinding(m_shader.Program, glGetProgramResourceIndex(m_shader.Program, GL_SHADER_STORAGE_BLOCK, "LightData"), 0);
-
     for(GLuint i = 0; i < this->meshes.size(); i++)
         this->meshes[i].Draw(m_shader, m_material[this->meshes[i].getMaterialIndex()]);
 
+	if(m_camera.needUpdate()) updateMatrices();
 }
 
 // Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -44,19 +40,41 @@ void Model::loadModel(string path)
     // Process ASSIMP's root node recursively
     this->processNode(scene->mRootNode, scene, modelMatrix);
 
-	// Transformation matrices
-	glm::mat4 projection = glm::perspective(m_camera.getZoom(), (GLfloat)m_engine.getScreenWidth()/(GLfloat)m_engine.getScreenHeight(), 0.1f, 500.0f);
-	//projection = glm::ortho( -10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
-
-	m_matricesSSBO.create(sizeof(glm::mat4)*2, GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	m_matricesSSBO.setBindingPoint(1);
+	processMatrices();
 
 	m_lightShaderStorageBuffer.bind();
 	m_matricesSSBO.bind();
+}
+
+Matrices Model::createMatrices() const
+{
+	Matrices mat;
+
+	mat.model		= glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+	mat.view		= m_camera.GetViewMatrix();
+	mat.projection	= glm::perspective(m_camera.getZoom(), (GLfloat)m_engine.getScreenWidth()/(GLfloat)m_engine.getScreenHeight(), 0.1f, 500.0f);
+	mat.normal		= glm::transpose(glm::inverse(mat.view * mat.model));
+	
+	return mat;
+}
+
+void Model::processMatrices()
+{
+	Matrices mat = createMatrices();
+
+	m_matricesSSBO.create(sizeof(Matrices), GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Matrices), &mat);
+	m_matricesSSBO.setBindingPoint(1);
+}
+
+void Model::updateMatrices()
+{
+	Matrices mat = createMatrices();
+
+	m_matricesSSBO.bind();
+	m_matricesSSBO.mapBuffer(&mat, sizeof(Matrices));
+
+	m_camera.setUpdate(false);
 }
 
 Light createLight(aiVector3D position, aiColor3D ambient, aiColor3D diffuse, aiColor3D specular, GLfloat constant, GLfloat linear, 
@@ -83,10 +101,7 @@ void Model::processLight(const aiScene* scene)
 
 	aiLight* light;
 	Light myLight;
-	/*
-	listDirectionalLight.push_back(createLight(aiVector3D(-50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
-		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(-1.0f, -1.0f, 1.0f)));
-	*/
+
 	/*
 	listPointLight.push_back(createLight(aiVector3D(-50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
 		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(-1.0f, -1.0f, 1.0f)));
@@ -97,6 +112,7 @@ void Model::processLight(const aiScene* scene)
 	listPointLight.push_back(createLight(aiVector3D(50.0f, 10.0f, 0.0f), aiColor3D(1.0f, 1.0f, 1.0f), aiColor3D(1.0f, 1.0f, 1.0f),
 		aiColor3D(1.0f, 1.0f, 1.0f), 1.0f, 0.009f, 0.0032f, 0.71f, 0.52f, aiVector3D(0.0f, -1.0f, 0.0f)));
 	*/
+
 	for(int i=0; scene->mNumLights; i++)
 	{
 		light = scene->mLights[i];
@@ -122,7 +138,6 @@ void Model::processLight(const aiScene* scene)
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4), sizeof(Light)*listPointLight.size(), &listPointLight[0]);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4) + sizeof(Light)*listPointLight.size(), sizeof(Light)*listSpotLight.size(), &listSpotLight[0]);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::ivec4) + sizeof(Light)*listPointLight.size() + sizeof(Light)*listSpotLight.size(), sizeof(Light)*listDirectionalLight.size(), &listDirectionalLight[0]);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	m_lightShaderStorageBuffer.setBindingPoint(0);
 }
 

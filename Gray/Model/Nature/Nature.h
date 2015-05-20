@@ -23,7 +23,7 @@ using namespace std;
 class Nature : public Model
 {
 public:
-    Nature(const Camera& camera, const Engine& engine);
+    Nature(Camera& camera, const Engine& engine);
 	~Nature();
 
     void Draw();

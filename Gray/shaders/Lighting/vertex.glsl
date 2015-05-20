@@ -10,17 +10,13 @@ out vec2 TexCoords;
 out vec3 fragPos;
 out vec3 N;
 
-//uniform mat4 model;
-uniform mat4 view;
-//uniform mat4 projection;
-
-
 layout (std430, binding=1) readonly buffer matrices
 {
 	mat4 model;
+	mat4 view;
 	mat4 projection;
+	mat4 normalMatrix;
 };
-
 
 void main()
 {
@@ -45,5 +41,5 @@ void main()
 	//LightDirection_tangentspace = TBN * LightDirection_cameraspace;
     //EyeDirection_tangentspace =  TBN * EyeDirection_cameraspace;
 	
-	N = vec3(transpose(inverse(mv)) * vec4(normal, 1.0f));
+	N = vec3(normalMatrix * vec4(normal, 1.0f));
 }

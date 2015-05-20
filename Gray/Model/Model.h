@@ -34,13 +34,18 @@ struct Light
 	glm::vec4 direction;
 };
 
+struct Matrices
+{
+	glm::mat4 model, view, projection, normal;
+};
+
 Light createLight(aiVector3D position, aiColor3D ambient, aiColor3D diffuse, aiColor3D specular, GLfloat constant, GLfloat linear, 
 				  GLfloat quadratic, GLfloat angleInnerCone, GLfloat angleOuterCone, aiVector3D direction);
 
 class Model
 {
 public:
-    Model(GLchar* path, const Camera& camera, const Engine& engine);
+    Model(GLchar* path, Camera& camera, const Engine& engine);
 
     virtual void Draw();
     
@@ -50,7 +55,7 @@ protected:
     vector<Mesh> meshes;
     string directory;
 
-	const Camera& m_camera;
+	Camera& m_camera;
 	const Engine& m_engine;
 
 	Shader m_shader;
@@ -67,6 +72,10 @@ protected:
 
 	void processMaterial(const aiScene* scene);
 	void processLight(const aiScene* scene);
+
+	void processMatrices();
+	void updateMatrices();
+	Matrices createMatrices() const;
 
 	GLint TextureFromFile(const char* path, string directory);
 };

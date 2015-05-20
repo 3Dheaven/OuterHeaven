@@ -46,9 +46,10 @@ int main()
 		glfwSetScrollCallback(window, scroll_callback);
 
 		Model crytekSponza("../obj/crytek-sponza/sponza.obj", camera, engine);
+		//Model teapot("../obj/teapot/teapot.obj", camera, engine);
 		//Model dabrovicSponza("../obj/dabrovic-sponza/sponza.obj", camera, engine);
 		//Model sibenikCathedral("../obj/sibenik-cathedral/sibenik.obj", camera, engine);
-		//Model test("../obj/nanosuit/nanosuit.obj", camera, engine);
+		//Model nanosuit("../obj/nanosuit/nanosuit.obj", camera, engine);
 		//Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
 		if(glfwJoystickPresent(0))

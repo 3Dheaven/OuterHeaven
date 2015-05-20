@@ -35,7 +35,7 @@ public:
     Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch);
 
     // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix() const;
+    glm::mat4 GetViewMatrix();
 
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime);
@@ -47,6 +47,9 @@ public:
     void ProcessMouseScroll(GLfloat yoffset);
 
 	void ProcessJoystickPad(GLfloat axis1x, GLfloat axis1y, GLfloat axis2x, GLfloat axis2y, GLfloat deltaTime);
+
+	GLboolean needUpdate() const;
+	void setUpdate(GLboolean v);
 
 	GLfloat getZoom() const;
 	glm::vec3 getPosition() const;
@@ -67,6 +70,8 @@ private:
     GLfloat MovementSpeed;
     GLfloat MouseSensitivity;
     GLfloat Zoom;
+
+	GLboolean m_update;
 
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors();
