@@ -46,13 +46,13 @@ class Model
 {
 public:
     Model(GLchar* path, Camera& camera, const Engine& engine);
+	~Model();
 
     virtual void Draw();
     
 protected:
-    /*  Model Data  */
 	vector<Material> m_material;
-    vector<Mesh> meshes;
+    vector<Mesh*> meshes;
     string directory;
 
 	Camera& m_camera;
@@ -68,7 +68,7 @@ protected:
     // Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 modelMatrix);
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMatrix) const;
+    Mesh* processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMatrix) const;
 
 	void processMaterial(const aiScene* scene);
 	void processLight(const aiScene* scene);

@@ -45,7 +45,7 @@ void Nature::Draw()
 
 	m_lightShaderStorageBuffer.bind();
 
-	this->meshes[0].Draw(m_grassShader, m_material[this->meshes[0].getMaterialIndex()], 3*50);
+	this->meshes[0]->Draw(m_grassShader, m_material[this->meshes[0]->getMaterialIndex()], 3*50);
 
 	/*
 	m_treeShader.Use();

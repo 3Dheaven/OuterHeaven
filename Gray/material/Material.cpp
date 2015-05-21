@@ -93,4 +93,5 @@ void Material::unbind() const
 
 Material::~Material()
 {
+
 }

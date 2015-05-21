@@ -6,12 +6,17 @@ Model::Model(GLchar* path, Camera& camera, const Engine& engine):m_lightShaderSt
     this->loadModel(path);
 }
 
+Model::~Model()
+{
+	for(vector<Mesh*>::iterator it = meshes.begin(); it < meshes.end(); it++) delete *it;
+}
+
 void Model::Draw()
 {
 	m_shader.Use();
 
     for(GLuint i = 0; i < this->meshes.size(); i++)
-        this->meshes[i].Draw(m_shader, m_material[this->meshes[i].getMaterialIndex()]);
+        this->meshes[i]->Draw(m_shader, m_material[this->meshes[i]->getMaterialIndex()]);
 
 	if(m_camera.needUpdate()) updateMatrices();
 }
@@ -149,18 +154,16 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 modelMat
     {
         // The node object only contains indices to index the actual objects in the scene. 
         // The scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]]; 
-        this->meshes.push_back(this->processMesh(mesh, scene, node->mTransformation));	
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        this->meshes.push_back(this->processMesh(mesh, scene, node->mTransformation));
     }
 
     // After we've processed all of the meshes (if any) we then recursively process each of the children nodes
     for(GLuint i = 0; i < node->mNumChildren; i++)
-    {
         this->processNode(node->mChildren[i], scene, node->mTransformation);
-    }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMatrix) const
+Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMatrix) const
 {
     // Data to fill
     vector<Vertex> vertices;
@@ -193,6 +196,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMat
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+
         vertices.push_back(vertex);
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -205,7 +209,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 modelMat
     }
    
     // Return a mesh object created from the extracted mesh data
-	return Mesh(vertices, indices, mesh->mMaterialIndex, modelMatrix.Transpose());
+	return new Mesh(vertices, indices, mesh->mMaterialIndex, modelMatrix.Transpose());
 }
 
 void Model::processMaterial(const aiScene* scene)

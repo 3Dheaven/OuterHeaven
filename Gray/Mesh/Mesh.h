@@ -25,15 +25,16 @@ struct Vertex {
     // TexCoords
     glm::vec2 TexCoords;
 	// Tangent
-	glm::vec3 Tangent;
+	//glm::vec3 Tangent;
 	// Bitangent
-	glm::vec3 Bitangent;
+	//glm::vec3 Bitangent;
 };
 
 class Mesh
 {
 public:
     Mesh(vector<Vertex> vertices, vector<GLuint> indices, GLuint materialIndex, aiMatrix4x4 modelMatrix);
+	~Mesh();
 
 	GLuint getMaterialIndex() const;
 
@@ -48,11 +49,9 @@ private:
 
 	aiMatrix4x4 m_modelMatrix;
 
-	/*  Mesh Data  */
-    vector<Vertex> vertices;
-    vector<GLuint> indices;
+	GLuint m_sizeIndices;
 	GLuint m_materialIndex;
 
     // Initializes all the buffer objects/arrays
-    void setupMesh();
+    void setupMesh(const vector<Vertex>& vertices, const vector<GLuint>& indices);
 };
